@@ -1,0 +1,5 @@
+* Explication lecture code barre, consulté le 26 avril 2020:
+
+https://barcode-coder.com/fr/specification-ean-13-102.html
+
+* 
