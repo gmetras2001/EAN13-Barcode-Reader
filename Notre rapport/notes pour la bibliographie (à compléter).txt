@@ -2,4 +2,16 @@
 
 https://barcode-coder.com/fr/specification-ean-13-102.html
 
+*Les bases du traitement d'image sous Matlab, consulté le 26 avril 2020:
+
+https://www.youtube.com/watch?v=1-jURfDzP1s
+
+* Explication sur les méthodes de seuillage, consulté le 27 avril 2020:
+
+https://www.youtube.com/watch?v=i1wAoIDar48
+
+* Fonctionnement d'un code barre EAN13 et chiffre de controle, consulté le 26 avril 2020
+
+https://barcode-coder.com/fr/specification-ean-13-102.html
+
 * 
