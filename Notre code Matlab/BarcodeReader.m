@@ -1,6 +1,9 @@
 %EAN13 Barcode Reader
-
+clear all
+close all
+clc
 %% Recuperation de l'image
+addpath(genpath('barcode images'));
 barcode = imread('perleDeLait2.PNG');
 figure, imshow(barcode);
 
@@ -27,30 +30,32 @@ barcode_bw_adaptive = imbinarize(barcode_adjust,'adaptive');
 figure, imshow(barcode_bw_adaptive);
 
 %% Corrections de l'image et décodage du code barre
-NumofRows=size(barcode_bw_global,1);
-NumofColoms=size(barcode_bw_global,2);
-depth=10;
-horizantalRule=depth+1;
 
-% for i=1:(horizantalRule-1)
-%     c=BYhorizontal(horizantalRule,NumofRows,NumofColoms,I);                 %function# 1
-%       
-%     td=Region(c);                                                            %function# 2
-%    
-%     s=Collect(c,td);                                                         %function# 3
-%     
-%     [k,g]=CheckT(s);                                                          %function# 4
-%     
-%     rec=s(k);
-%     q=s./rec;
-%     p=round(q);
-%     
-%     if (td-g-k)==57 & p(k)==1 & p(k+1)==1 & p(k+2)==1
-%         
-%         result=eanupc(p,k)
-%     end
-% end
+%extraction d'une ligne
+ligne=extractLigne(10,barcode_bw_global);
+figure, imshow(ligne);
 
+%calcul le nombre de barres verticales
+numberOfBars=countBars(ligne);
+
+%tableau contenant la largeur des barres
+widthOfBars=findWidths2(ligne,numberOfBars);
+
+%donne l'indice de la premiere barre valide (k)
+%et le nombre de barres en trop à la fin (g)
+[k,g]=findValidBars(widthOfBars);
+
+%calcul la largeur de la barre élémentaire
+standardWidth=widthOfBars(k);
+
+%normalise la largeur des barres
+standardWidthOfBars=round(widthOfBars/standardWidth);
+
+%verification qu'il s'agit bien d'un code barre 
+    if (numberOfBars-g-k)==57 & standardWidthOfBars(k)==1 & standardWidthOfBars(k+1)==1 & standardWidthOfBars(k+2)==1
+        result=eanupc(standardWidthOfBars,k)
+    end
+    
 %% Ouverture de la page du produit sur open food facts
 % result=num2str(result);
 % url = strcat('https://fr.openfoodfacts.org/produit/',result);
