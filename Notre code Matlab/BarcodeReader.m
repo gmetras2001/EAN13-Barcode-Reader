@@ -4,7 +4,7 @@ close all
 clc
 %% Recuperation de l'image
 addpath(genpath('barcode images'));
-barcode = imread('perleDeLait2.PNG');
+barcode = imread('perleDeLait3.PNG');
 figure, imshow(barcode);
 
 %% Redimensionnement imcrop(image,[Xmin Ymin Width Height])
@@ -42,7 +42,7 @@ numberOfBars=countBars(ligne);
 widthOfBars=findWidths2(ligne,numberOfBars);
 
 %donne l'indice de la premiere barre valide (k)
-%et le nombre de barres en trop à la fin (g)
+%et de la dernière barre valide (g)
 [k,g]=findValidBars(widthOfBars);
 
 %calcul la largeur de la barre élémentaire
@@ -53,7 +53,7 @@ standardWidthOfBars=round(widthOfBars/standardWidth);
 
 %verification qu'il s'agit bien d'un code barre 
     if (numberOfBars-g-k)==57 & standardWidthOfBars(k)==1 & standardWidthOfBars(k+1)==1 & standardWidthOfBars(k+2)==1
-        result=eanupc(standardWidthOfBars,k)
+        result=decode(standardWidthOfBars,k)
     end
     
 %% Ouverture de la page du produit sur open food facts
