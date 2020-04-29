@@ -1,35 +1,75 @@
-function res1 = decode1(p,k,table)
-    res1 = [1:6];
-    
-    res1(1)=decodeL(p,k+3);
-    
-    if table==0 || table==1 || table==2 || table==3 || table==9 
-        res1(2)=decodeL(p,k+7);
-    else
-        res1(2)=decodeG(p,k+7);
+function res1 = decode1(p,k)
+    res1 = [1:7];
+    table = zeros(1,6);
+    j=1;
+    %decodage du 2ème au 7ème chiffre
+    for i=k+3:4:k+23
+        j=j+1;
+        if (p(i)==3)& (p(i+1)==2) &(p(i+2)==1) &(p(i+3)==1)
+            res1(j)=0;
+        elseif (p(i)==2)& (p(i+1)==2) &(p(i+2)==2) &(p(i+3)==1)
+            res1(j)=1;  
+        elseif (p(i)==2)& (p(i+1)==1) &(p(i+2)==2) &(p(i+3)==2)
+            res1(j)=2;
+        elseif (p(i)==1)& (p(i+1)==4) &(p(i+2)==1) &(p(i+3)==1)
+            res1(j)=3;
+        elseif (p(i)==1)& (p(i+1)==1) &(p(i+2)==3) &(p(i+3)==2)
+            res1(j)=4;
+        elseif (p(i)==1)& (p(i+1)==2) &(p(i+2)==3) &(p(i+3)==1)
+            res1(j)=5;
+        elseif (p(i)==1)& (p(i+1)==1) &(p(i+2)==1) &(p(i+3)==4)
+            res1(j)=6;
+        elseif (p(i)==1)& (p(i+1)==3) &(p(i+2)==1) &(p(i+3)==2)
+            res1(j)=7;
+        elseif (p(i)==1)& (p(i+1)==2) &(p(i+2)==1) &(p(i+3)==3)
+            res1(j)=8;
+        elseif (p(i)==3)& (p(i+1)==1) &(p(i+2)==1) &(p(i+3)==2)
+            res1(j)=9;
+        else
+            if (p(i)==1)& (p(i+1)==1) &(p(i+2)==2) &(p(i+3)==3)
+                res1(j)=0;
+            elseif (p(i)==1)& (p(i+1)==2) &(p(i+2)==2) &(p(i+3)==2)
+                res1(j)=1;  
+            elseif (p(i)==2)& (p(i+1)==2) &(p(i+2)==1) &(p(i+3)==2)
+                res1(j)=2;
+            elseif (p(i)==1)& (p(i+1)==1) &(p(i+2)==4) &(p(i+3)==1)
+                res1(j)=3;
+            elseif (p(i)==2)& (p(i+1)==3) &(p(i+2)==1) &(p(i+3)==1)
+                res1(j)=4;
+            elseif (p(i)==1)& (p(i+1)==3) &(p(i+2)==2) &(p(i+3)==1)
+                res1(j)=5;
+            elseif (p(i)==4)& (p(i+1)==1) &(p(i+2)==1) &(p(i+3)==1)
+                res1(j)=6;
+            elseif (p(i)==2)& (p(i+1)==1) &(p(i+2)==3) &(p(i+3)==1)
+                res1(j)=7;
+            elseif (p(i)==3)& (p(i+1)==1) &(p(i+2)==2) &(p(i+3)==1)
+                res1(j)=8;
+            elseif (p(i)==2)& (p(i+1)==1) &(p(i+2)==1) &(p(i+3)==3)
+                res1(j)=9;
+            end
+            table(j-1)=1;
+        end
     end
-    
-    if table==0 || table==4 || table==7 || table==8
-        res1(3)=decodeL(p,k+11);
-    else
-        res1(3)=decodeG(p,k+11);
-    end
-    
-    if table==0 || table==1 || table==4 || table==5 || table==9
-        res1(4)=decodeL(p,k+15);
-    else
-        res1(4)=decodeG(p,k+15);
-    end
-    
-    if table==0 || table==2 || table==5 || table==6 || table==7
-        res1(5)=decodeL(p,k+19);
-    else
-        res1(5)=decodeG(p,k+19);
-    end
-    
-    if table==0 || table==3 || table==6 || table==8 || table==9
-        res1(6)=decodeL(p,k+23);
-    else
-        res1(6)=decodeG(p,k+23);
+    %decodage du premier chiffre
+    if table==[0 0 0 0 0 0]
+            res1(1)=0;    
+    elseif table==[0 0 1 0 1 1]
+            res1(1)=1;    
+    elseif table==[0 0 1 1 0 1]
+            res1(1)=2;    
+    elseif table==[0 0 1 1 1 0]
+            res1(1)=3;    
+    elseif table==[0 1 0 0 1 1]
+            res1(1)=4;    
+    elseif table==[0 1 1 0 0 1]
+            res1(1)=5;    
+    elseif table==[0 1 1 1 0 0]
+            res1(1)=6;    
+    elseif table==[0 1 0 1 0 1]
+            res1(1)=7;    
+    elseif table==[0 1 0 1 1 0]
+            res1(1)=8;    
+    elseif table==[0 0 1 0 1 0]
+            res1(1)=9;
     end
 end

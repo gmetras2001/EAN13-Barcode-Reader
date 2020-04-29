@@ -14,4 +14,8 @@ https://www.youtube.com/watch?v=i1wAoIDar48
 
 https://barcode-coder.com/fr/specification-ean-13-102.html
 
+* wikipedia code barres, consulté le 28 avril 2020:
+
+https://fr.wikipedia.org/wiki/Code-barres_EAN#Description_sommaire
+
 * 

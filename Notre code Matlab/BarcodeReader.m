@@ -4,7 +4,7 @@ close all
 clc
 %% Recuperation de l'image
 addpath(genpath('barcode images'));
-barcode = imread('perleDeLait3.PNG');
+barcode = imread('pates2.PNG');
 figure, imshow(barcode);
 
 %% Redimensionnement imcrop(image,[Xmin Ymin Width Height])
@@ -30,36 +30,47 @@ barcode_bw_adaptive = imbinarize(barcode_adjust,'adaptive');
 figure, imshow(barcode_bw_adaptive);
 
 %% Corrections de l'image et décodage du code barre
+validBarcode = 0;
+for i=1:5:size(barcode_bw_global,1)
+    %extraction d'une ligne
+    ligne=extractLigne(i,barcode_bw_global);
 
-%extraction d'une ligne
-ligne=extractLigne(10,barcode_bw_global);
-figure, imshow(ligne);
+    %calcul le nombre de barres verticales
+    numberOfBars=countBars(ligne);
 
-%calcul le nombre de barres verticales
-numberOfBars=countBars(ligne);
+    %tableau contenant la largeur des barres
+    widthOfBars=findWidths2(ligne,numberOfBars);
 
-%tableau contenant la largeur des barres
-widthOfBars=findWidths2(ligne,numberOfBars);
+    %donne l'indice de la premiere barre valide (k)
+    %et de la dernière barre valide (g)
+    [k,g]=findValidBars(widthOfBars);
 
-%donne l'indice de la premiere barre valide (k)
-%et de la dernière barre valide (g)
-[k,g]=findValidBars(widthOfBars);
+    %calcul la largeur de la barre élémentaire
+    standardWidth=widthOfBars(k);
 
-%calcul la largeur de la barre élémentaire
-standardWidth=widthOfBars(k);
+    %normalise la largeur des barres
+    standardWidthOfBars=round(widthOfBars/standardWidth);
 
-%normalise la largeur des barres
-standardWidthOfBars=round(widthOfBars/standardWidth);
-
-%verification qu'il s'agit bien d'un code barre 
+    %decodage du code barre s'il semble être correct
     if (numberOfBars-g-k)==57 & standardWidthOfBars(k)==1 & standardWidthOfBars(k+1)==1 & standardWidthOfBars(k+2)==1
-        result=decode(standardWidthOfBars,k)
+        [validBarcode,result]=decode(standardWidthOfBars,k);
     end
     
-%% Ouverture de la page du produit sur open food facts
-% result=num2str(result);
-% url = strcat('https://fr.openfoodfacts.org/produit/',result);
-% web(url);
+    %verification de la validité du code barre(chiffre de controle)
+    if validBarcode
+        disp(result)
+        break;
+    end
+end
 
+%% Ouverture de la page du produit sur open food facts
+
+if ~validBarcode
+    disp('c''est un echec, le code barre n''a pas pu etre decode')
+else
+    result=num2str(result);
+    url = strcat('https://fr.openfoodfacts.org/produit/',result);
+    web(url);
+end
 
 

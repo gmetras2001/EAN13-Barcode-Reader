@@ -1,7 +1,8 @@
 function res2 = decode2(p,k)
         res2=[1:6];
-        h=1;
+        h=0;
         for i=(k+32):4:(k+52)
+            h=h+1;
             if (p(i)==3)& (p(i+1)==2) & (p(i+2)==1) & (p(i+3)==1)
                 res2(h)=0;
             elseif (p(i)==2)& (p(i+1)==2) &(p(i+2)==2) &(p(i+3)==1)
@@ -23,6 +24,5 @@ function res2 = decode2(p,k)
             elseif (p(i)==3)& (p(i+1)==1) &(p(i+2)==1) &(p(i+3)==2)
                 res2(h)=9;
             end
-            h=h+1;
         end
 end
