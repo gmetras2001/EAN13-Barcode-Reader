@@ -7,6 +7,9 @@ addpath(genpath('barcode images'));
 barcode = imread('pates2.PNG');
 figure, imshow(barcode);
 
+barcode=retourne(barcode);
+figure, imshow(barcode);
+
 %% Redimensionnement imcrop(image,[Xmin Ymin Width Height])
 nbLignes = size(barcode,1);
 nbColonnes = size(barcode,2);
