@@ -60,7 +60,9 @@ Q2=abs(I(y,x)-I(y+1,x-1));
 Q3=abs(I(y,x)-I(y,x+1));
 Q4=abs(I(y,x)-I(y,x+2));
 Q5=abs(I(y,x)-I(y,x-2));
-Q=min([Q1,Q2,Q3,Q4,Q5]);
+Q6=abs(I(y,x)-I(y,x+3));
+Q7=abs(I(y,x)-I(y,x-3));
+Q=min([Q1,Q2,Q3,Q4,Q5,Q6,Q7]);
 y=y+1;
 
     switch Q
@@ -80,6 +82,12 @@ y=y+1;
 
     case Q5
         x=x-2;
+        
+    case Q6
+        x=x+3;
+        
+     case Q7
+        x=x-3;
 
     end
 
