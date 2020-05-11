@@ -41,13 +41,17 @@ subplot(3,2,5)
 %calcul des paramètres géométriques des régions
 stats1 = regionprops(i_regions,'MinorAxisLength','MajorAxisLength');
 
-idx_regions_allongees=[]; %indice des régions allongées
+
+d=zeros(length(stats1));
 %pour chaque région d'indice k
 for k=1:length(stats1)
     if (stats1(k).MajorAxisLength/stats1(k).MinorAxisLength) > 10
-        idx_regions_allongees = [idx_regions_allongees k];
+        d(k)=k;
     end
 end
+e=d~=0;
+idx_regions_allongees = d(e);
+
 %creation d'une image noir et blanc avec les régions allongées uniquement
 i_regions_allongees = ismember(i_regions,idx_regions_allongees);
 %numérotation des régions allongées
