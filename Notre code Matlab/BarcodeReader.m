@@ -4,7 +4,7 @@ close all
 clc
 %% Recuperation de l'image
 addpath(genpath('barcode images'));
-barcode = imread('image_ndg.jpg');
+barcode = imread('perleDeLait4.PNG');
 figure, imshow(barcode);
 
 barcode=retourne(barcode);
