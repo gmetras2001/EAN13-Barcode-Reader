@@ -2,32 +2,44 @@
 clear all
 close all
 clc
+
+cam = webcam;
+preview(cam);
+REUSSI=0;
+while REUSSI==0
+    
+
+%% Image avec Webcam
+barcode = snapshot(cam);
+%imshow(barcode)
+
+
 %% Recuperation de l'image
-addpath(genpath('barcode images'));
-barcode = imread('pates2.png');
-figure, imshow(barcode);
+%addpath(genpath('barcode images'));
+%barcode = imread('pates2.png');
+%figure, imshow(barcode);
 
 %% Redimensionnement imcrop(image,[Xmin Ymin Width Height])
 nbLignes = size(barcode,1);
 nbColonnes = size(barcode,2);
 barcode_crop=imcrop(barcode,[0 nbLignes/2 nbColonnes nbLignes/1.2]);
-figure, imshow(barcode_crop);
+%figure, imshow(barcode_crop);
 
 %% Conversion en nuance de gris
 barcode_gray = rgb2gray(barcode_crop);
-figure, imshow(barcode_gray);
-figure, imhist(barcode_gray);   %histogramme mettant en valeur le changement de contraste
+%figure, imshow(barcode_gray);
+%figure, imhist(barcode_gray);   %histogramme mettant en valeur le changement de contraste
 
 %% Augmentation du contraste
 barcode_adjust = imadjust(barcode_gray);
-figure, imshow(barcode_adjust);
-figure, imhist(barcode_adjust);
+%figure, imshow(barcode_adjust);
+%figure, imhist(barcode_adjust);
 
 %% Conversion en noir et blanc, seuillage (thresholding) global (Otsu's method) ou local(adaptative), 
 barcode_bw_global = imbinarize(barcode_adjust,'global');
-figure, imshow(barcode_bw_global);
+%figure, imshow(barcode_bw_global);
 barcode_bw_adaptive = imbinarize(barcode_adjust,'adaptive');
-figure, imshow(barcode_bw_adaptive);
+%figure, imshow(barcode_bw_adaptive);
 
 %% Corrections de l'image et décodage du code barre
 validBarcode = 0;
@@ -79,7 +91,10 @@ if ~validBarcode
 else
     result=num2str(result);
     url = strcat('https://fr.openfoodfacts.org/produit/',result);
+    REUSSI=1;
     web(url);
+end
+
 end
 
 
