@@ -1,0 +1,97 @@
+clear all
+close all
+clc
+%% Pré-traitement %%
+
+%recupération de l'image
+i_rgb = imread('lait3.JPG');
+%converision en nuance de gris
+i_gray = rgb2gray(i_rgb);
+% ?ltrage morphologique top hat black (mise en évidence du contraste
+se = strel('square',25);
+i_black = imbothat(i_gray,se);
+%augmentation du contraste
+i_adjust = imadjust(i_black);
+%conversion en noir et blanc
+i_bw = imbinarize(i_adjust);
+
+figure('Name','Pré-traitement')
+subplot(3,2,1)
+    image(i_rgb)
+    title('Image originale')
+subplot(3,2,2)
+    imshow(i_gray)
+    title('Nuances de gris')
+subplot(3,2,3)
+    imshow(i_black)
+    title('Filtre top hat black')
+subplot(3,2,4)
+    imshow(i_adjust)
+    title('Augmentation du contraste')
+subplot(3,2,5)
+    imshow(i_bw)
+    title('Noir et blanc')
+
+%% Extraction du code barre %%
+
+%numérotation des régions connexes
+[i_regions,n_regions] = bwlabel(i_bw,4);
+%calcul des paramètres géométriques des régions
+stats1 = regionprops(i_regions,'MinorAxisLength','MajorAxisLength');
+
+%% Filtrage des régions allongées (rapport longeur/largeur des axes principaux > 10)
+idx_regions_allongees=[]; %indice des régions allongées
+%pour chaque région d'indice k
+for k=1:length(stats1)
+    if (stats1(k).MajorAxisLength/stats1(k).MinorAxisLength) > 10
+        idx_regions_allongees = [idx_regions_allongees k];
+    end
+end
+%creation d'une image noir et blanc avec les régions allongées uniquement
+i_regions_allongees = ismember(i_regions,idx_regions_allongees);
+%numérotation des régions allongées
+i_regions_allongees_num = bwlabel(i_regions_allongees);
+stats2=regionprops(i_regions_allongees_num,'Centroid','Orientation');
+
+%% Associer des régions allongées pour constituer des zones scuceptibles d'être des codes barres
+%orientation des barres (recherche de barres parrallèles)
+%     idx_regions_orientation_identique = [];
+%     orientation_moy = 90+stats2(1).Orientation; 
+%     for k=1:length(stats2)
+%         current_orientation=90+stats2(k).Orientation;
+%         if abs(current_orientation-orientation_moy)<5
+%             idx_regions_orientation_identique = [idx_regions_orientation_identique k];
+%             orientation_moy=(orientation_moy+current_orientation)/2;
+%         elseif abs(current_orientation-orientation_moy)>175
+%             idx_regions_orientation_identique = [idx_regions_orientation_identique k];
+%             orientation_moy=(orientation_moy+current_orientation+180)/2;
+%         end
+%     end
+    
+% for i=1:length(stats2)
+%     for j=1:length(stats2)
+%         if isSameOrientation(stats2(j).Orientation,stats2(i).Orientation)
+%             
+%         end
+%     end
+% end
+
+figure('Name','Extraction des codes barrres')
+subplot(2,2,1)
+    imshow(i_regions_allongees)
+    hold on
+for k=1:length(stats2)
+    txt=texlabel(num2str(k));
+    text(stats2(k).Centroid(1),stats2(k).Centroid(2),txt,'Color','r')
+end
+
+%distance des barycentres/distance moyenne entre les barres déja liées ~=1
+
+%% filtrage des zones
+%possede plus de deux régions
+
+%l'espacement moyen entre les régions est inférieur à 8 fois la largeur
+%moyenne (minorAxisLength)
+
+%envisagé la fusion de deux zones si les orientations de leurs régions est
+%très proches(identiques)
