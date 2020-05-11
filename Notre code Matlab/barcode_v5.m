@@ -4,11 +4,13 @@ clc
 %% Pré-traitement %%
 
 %recupération de l'image
-[FILENAME, PATHNAME] = uigetfile('*.*');
-i_rgb=imread(strcat(PATHNAME,FILENAME));
+% [FILENAME, PATHNAME] = uigetfile('*.*');
+% i_rgb=imread(strcat(PATHNAME,FILENAME));
+addpath(genpath('barcode images'));
+i_rgb=imread('lait3.JPG');
 %converision en nuance de gris
 i_gray = rgb2gray(i_rgb);
-% ?ltrage morphologique top hat black (mise en évidence du contraste
+% Filtrage morphologique top hat black (mise en évidence du contraste)
 se = strel('square',25);
 i_black = imbothat(i_gray,se);
 %augmentation du contraste
@@ -41,11 +43,10 @@ subplot(3,2,5)
 %calcul des paramètres géométriques des régions
 stats1 = regionprops(i_regions,'MinorAxisLength','MajorAxisLength');
 
-
 d=zeros(length(stats1));
 %pour chaque région d'indice k
 for k=1:length(stats1)
-    if (stats1(k).MajorAxisLength/stats1(k).MinorAxisLength) > 10
+    if (stats1(k).MajorAxisLength/stats1(k).MinorAxisLength) > 5
         d(k)=k;
     end
 end
