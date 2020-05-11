@@ -124,15 +124,15 @@ for i=1:length(stats2)
             
     end
     
-Distance(1,i)=sum(voisins);
+Distance(i)=sum(voisins);
     
 end
 
 ValARetirer=length(stats2)-30;
 
 while ValARetirer>0
-val=max(Distance);
-idx=find(Distance==val)
+val=max(Distance)
+idx=find(Distance==val);
 Distance(idx)=0;
-ValARetirer=ValARetirer-length(idx);
+ValARetirer=ValARetirer-1
 end
