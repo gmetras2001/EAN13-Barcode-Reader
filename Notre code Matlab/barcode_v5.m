@@ -4,10 +4,10 @@ clc
 %% Pré-traitement %%
 
 %recupération de l'image
-% [FILENAME, PATHNAME] = uigetfile('*.*');
-% i_rgb=imread(strcat(PATHNAME,FILENAME));
-addpath(genpath('barcode images'));
-i_rgb=imread('lait3.JPG');
+[FILENAME, PATHNAME] = uigetfile('*.*');
+i_rgb=imread(strcat(PATHNAME,FILENAME));
+%addpath(genpath('barcode images'));
+%i_rgb=imread('lait3.JPG');
 %converision en nuance de gris
 i_gray = rgb2gray(i_rgb);
 % Filtrage morphologique top hat black (mise en évidence du contraste)
@@ -91,6 +91,55 @@ i_regions_orientation_identique = ismember(i_regions_allongees_num,idx_orientati
 i_regions_orientation_identique_num = bwlabel(i_regions_orientation_identique);
 stats3=regionprops(i_regions_orientation_identique_num,'Centroid','Orientation');
 
+
+
+%% Filtrage des régions possédant des régions voisines proches
+
+Distance=zeros(1,length(stats3));
+Taille=size(i_rgb);
+DimensionIm=Taille(1,1);
+
+for i=1:length(stats3)
+    disp(i)
+    Position_i=stats3(i).Centroid;
+    voisins=DimensionIm*ones(1,5); %On cherche les 5 voisins les plus proches
+    
+    for j=1:length(stats3)
+        dist=DimensionIm;
+        if i~=j
+            Position_j=stats3(j).Centroid;
+            dist=sqrt((Position_i (1,1)-Position_j (1,1))^2 + (Position_i (1,2)-Position_j (1,2))^2);
+
+            if(dist<voisins(1,5))
+                voisins(1,5)=dist;
+                voisins=sort(voisins);               
+            end
+            
+        end
+            
+    end
+    
+Distance(1,i)=sum(voisins);
+    
+end
+
+Minimum=min(Distance);
+idx=[];
+
+for i=1:length(Distance)
+    if Distance(i)<2.25*Minimum   %Le 2.25 est déterminé expérimentalement. Pour une valeur inférieure on commence à supprimer les barres extérieures du code
+    idx=[idx i];
+    end
+end
+
+i_regions_voisines = ismember(i_regions_orientation_identique_num,idx);
+%numérotation des régions de meme orientation
+i_regions_voisines_num = bwlabel(i_regions_voisines);
+stats4=regionprops(i_regions_voisines_num,'Centroid','Orientation');
+
+
+%Affichage des différentes étapes du pré-traitement
+
 figure('Name','Extraction des codes barrres')
 subplot(2,2,1)
     imshow(i_regions);
@@ -111,40 +160,11 @@ for k=1:length(stats3)
     text(stats3(k).Centroid(1),stats3(k).Centroid(2),txt,'Color','r')
 end
 
-%% Filtrage des régions possédant des régions voisines proches
 
-Distance=zeros(1,length(stats3));
-Taille=size(i_rgb);
-DimensionIm=Taille(1,1);
-
-for i=1:length(stats3)
-    Position_i=stats3(i).Centroid;
-    voisins=DimensionIm*ones(1,5); %On cherche les 5 voisins les plus proches
-    
-    for j=1:length(stats3)
-        dist=DimensionIm;
-        if i~=j
-            Position_j=stats3.Centroid;
-            dist=sqrt((Position_i (1,1)-Position_j (1,1))^2 + (Position_i (1,2)-Position_j (1,2))^2);
-            
-            if(dist<voisins(1,5))
-                voisins(1,5)=dist;
-                sort(voisins);
-            end
-            
-        end
-            
-    end
-    
-Distance(1,i)=sum(voisins);
-    
-end
-
-ValARetirer=length(stats3)-30;
-
-while ValARetirer>0
-val=max(Distance);
-idx=find(Distance==val)
-Distance(idx)=0;
-ValARetirer=ValARetirer-length(idx);
+subplot(2,2,4)
+    imshow(i_regions_voisines)
+    title('Filtrage grace à l''orientation')
+for k=1:length(stats4)
+    txt=texlabel(num2str(k));
+    text(stats4(k).Centroid(1),stats4(k).Centroid(2),txt,'Color','r')
 end
