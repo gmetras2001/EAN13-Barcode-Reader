@@ -202,37 +202,44 @@ for i=1:size(barcode_rotate,1)
     %donne l'indice de la premiere barre valide (k)
     %et de la dernière barre valide (g)
     [k,g]=findValidBars(widthOfBars);
-        
-    if (numberOfBars-g-k)==57
+    
+     if (numberOfBars-g-k)==57
+         if exist('widthOfBars_moy')
+            widthOfBars_moy = (widthOfBars(k:k+59)+widthOfBars_moy)/2;
+         else
+            widthOfBars_moy = widthOfBars(k:k+59);
+         end
+     end
+end
 
-        %calcul la largeur des barres élémentaires
-        standardWidth1=(widthOfBars(k)+widthOfBars(k+1)+widthOfBars(k+2))/3;
-        standardWidth2=(widthOfBars(k+27)+widthOfBars(k+28)+widthOfBars(k+29)+widthOfBars(k+30)+widthOfBars(k+31))/5;
-        standardWidth3=(widthOfBars(k+56)+widthOfBars(k+57)+widthOfBars(k+58))/3;
-    
-        %applatissement du code barre et normalisation
-        x1=[k+1, k+29, k+57];
-        y1=[standardWidth1, standardWidth2, standardWidth3];
-        p=polyfit(x1,y1,2);
-    
-        x=k:k+58;
-    
-        standardWidthOfBars(x)=round(widthOfBars(x)./polyval(p,x));
-    
-        %decodage du code barre
-        [validBarcode,result]=decode(standardWidthOfBars,k);
-    
-        %verification de la validité du code barre(chiffre de controle)
+if exist('widthOfBars_moy')
+
+    %calcul la largeur des barres élémentaires
+    standardWidth1=(widthOfBars_moy(1)+widthOfBars_moy(2)+widthOfBars_moy(3))/3;
+    standardWidth2=(widthOfBars_moy(28)+widthOfBars_moy(29)+widthOfBars_moy(30)+widthOfBars_moy(31)+widthOfBars_moy(32))/5;
+    standardWidth3=(widthOfBars_moy(57)+widthOfBars_moy(58)+widthOfBars_moy(59))/3;
+
+    %applatissement du code barre et normalisation
+    x1=[2, 30, 58];
+    y1=[standardWidth1, standardWidth2, standardWidth3];
+    p=polyfit(x1,y1,2);
+
+    x=1:59;
+
+    standardWidthOfBars(x)=round(widthOfBars_moy(x)./polyval(p,x));
+
+    %decodage du code barre
+    [validBarcode,result]=decode(standardWidthOfBars,k);
+
+    %verification de la validité du code barre(chiffre de controle)
+    if validBarcode
+        disp(result)
+    else
+        [validBarcode,result]=decode(fliplr(standardWidthOfBars),1);
         if validBarcode
             disp(result)
-            break;
         else
-            [validBarcode,result]=decode(fliplr(standardWidthOfBars),1);
-            if validBarcode
-                disp(result)
-                break;
-            end
+            disp('code non décodé')
         end
     end
 end
-
