@@ -61,38 +61,39 @@ function rect = findBoundingBox(I)
         end
     end
     %marge de m pixels (ou moins) à gauche et à droite
-    m = 200;
-    if d(1,2)-m<0
+    m1 = 0.1*(b(1,2)-d(1,2));
+    m2 = 0.1*(c(1,1)-a(1,1));
+    if d(1,2)-m1<0
         A = 0;
         C = b(1,2)-d(1,2)+d(1,2);
-        if C+m<size(I,2)
-            C=C+m;
+        if C+m1<size(I,2)
+            C=C+m1;
         else
             C = size(I,2);
         end
     else
-        A = d(1,2)-m;
-        C = b(1,2)-d(1,2)+m;
-        if d(1,2)+C+m<size(I,2)
-            C=C+m;
+        A = d(1,2)-m1;
+        C = b(1,2)-d(1,2)+m1;
+        if d(1,2)+C+m1<size(I,2)
+            C=C+m1;
         else
             C = size(I,2)-A;
         end
     end
     %marge de m pixels (ou moins) en haut et en bas
-    if a(1,1)-m<0
+    if a(1,1)-m2<0
         B = 0;
         D = c(1,1)-a(1,1)+a(1,1);
-        if D+m<size(I,1)
-            D = D+m;
+        if D+m2<size(I,1)
+            D = D+m2;
         else
             D = size(I,1);
         end
     else
-        B = a(1,1)-m;
-        D = c(1,1)-a(1,1)+m;
-        if a(1,1)+D+m<size(I,1)
-            D=D+m;
+        B = a(1,1)-m2;
+        D = c(1,1)-a(1,1)+m2;
+        if a(1,1)+D+m2<size(I,1)
+            D=D+m2;
         else
             D=size(I,1)-B;
         end
