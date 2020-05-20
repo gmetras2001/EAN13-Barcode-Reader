@@ -4,12 +4,14 @@ clc
 %% Pré-traitement %%
 
 %recupération de l'image
-[FILENAME, PATHNAME] = uigetfile('*.png');
+[FILENAME, PATHNAME] = uigetfile('*.*');
 i_rgb=imread(strcat(PATHNAME,FILENAME));
+% addpath(genpath('barcode images'));
+% i_rgb=imread('lait3.JPG');
 %converision en nuance de gris
 i_gray = rgb2gray(i_rgb);
-% ?ltrage morphologique top hat black (mise en évidence du contraste
-se = strel('square',25);
+% Filtrage morphologique top hat black (mise en évidence du contraste)
+se = strel('square',100);
 i_black = imbothat(i_gray,se);
 %augmentation du contraste
 i_adjust = imadjust(i_black);
@@ -34,90 +36,80 @@ subplot(3,2,5)
     title('Noir et blanc')
 
 %% Extraction du code barre %%
+%% Filtrage des régions allongées (rapport longeur/largeur des axes principaux > 10)
 
 %numérotation des régions connexes
 [i_regions,n_regions] = bwlabel(i_bw,4);
 %calcul des paramètres géométriques des régions
 stats1 = regionprops(i_regions,'MinorAxisLength','MajorAxisLength');
 
-%% Filtrage des régions allongées (rapport longeur/largeur des axes principaux > 10)
-idx_regions_allongees=[]; %indice des régions allongées
+d=zeros(length(stats1));
 %pour chaque région d'indice k
 for k=1:length(stats1)
-    if (stats1(k).MajorAxisLength/stats1(k).MinorAxisLength) > 10
-        idx_regions_allongees = [idx_regions_allongees k];
+    if (stats1(k).MajorAxisLength/stats1(k).MinorAxisLength) > 5
+        d(k)=k;
     end
 end
+e=d~=0;
+idx_regions_allongees = d(e);
+
 %creation d'une image noir et blanc avec les régions allongées uniquement
 i_regions_allongees = ismember(i_regions,idx_regions_allongees);
 %numérotation des régions allongées
 i_regions_allongees_num = bwlabel(i_regions_allongees);
 stats2=regionprops(i_regions_allongees_num,'Centroid','Orientation');
 
-%% Associer des régions allongées pour constituer des zones scuceptibles d'être des codes barres
-%orientation des barres (recherche de barres parrallèles)
-%     idx_regions_orientation_identique = [];
-%     orientation_moy = 90+stats2(1).Orientation; 
-%     for k=1:length(stats2)
-%         current_orientation=90+stats2(k).Orientation;
-%         if abs(current_orientation-orientation_moy)<5
-%             idx_regions_orientation_identique = [idx_regions_orientation_identique k];
-%             orientation_moy=(orientation_moy+current_orientation)/2;
-%         elseif abs(current_orientation-orientation_moy)>175
-%             idx_regions_orientation_identique = [idx_regions_orientation_identique k];
-%             orientation_moy=(orientation_moy+current_orientation+180)/2;
-%         end
-%     end
-    
-% for i=1:length(stats2)
-%     for j=1:length(stats2)
-%         if isSameOrientation(stats2(j).Orientation,stats2(i).Orientation)
-%             
-%         end
-%     end
-% end
-
-figure('Name','Extraction des codes barrres')
-subplot(2,2,1)
-    imshow(i_regions_allongees)
-    hold on
-for k=1:length(stats2)
-    txt=texlabel(num2str(k));
-    text(stats2(k).Centroid(1),stats2(k).Centroid(2),txt,'Color','r')
+%% Filtrage des régions de meme orientation
+orientation_identique=zeros(length(stats2));
+a=zeros(1,length(stats2));
+for i=1:length(stats2)
+    for j=1:length(stats2)
+        if isSameOrientation(stats2(i).Orientation,stats2(j).Orientation)
+            orientation_identique(i,j) = 1;
+        end
+    end
+    a(i)=sum(orientation_identique(i,:));
 end
+ligne=1;
+for i=2:length(a)
+    if a(i)>a(ligne)
+        ligne=i;
+    end
+end
+b=zeros(length(orientation_identique));
+for i=1:length(orientation_identique)
+    if orientation_identique(ligne,i)
+        b(i)=i;
+    end
+end
+c=b~=0;
+idx_orientation_identique = b(c);
+%creation d'une image noir et blanc avec les régions allongées de meme orientation
+%uniquement
+i_regions_orientation_identique = ismember(i_regions_allongees_num,idx_orientation_identique);
+%numérotation des régions de meme orientation
+i_regions_orientation_identique_num = bwlabel(i_regions_orientation_identique);
+stats3=regionprops(i_regions_orientation_identique_num,'Centroid','Orientation');
 
-%distance des barycentres/distance moyenne entre les barres déja liées ~=1
+%% Filtrage des régions possédant des régions voisines proches
 
-%% filtrage des zones
-%possede plus de deux régions
-
-%l'espacement moyen entre les régions est inférieur à 8 fois la largeur
-%moyenne (minorAxisLength)
-
-%envisagé la fusion de deux zones si les orientations de leurs régions est
-%très proches(identiques)
-
-%Essayons de déteriminer quelles sont les barres dont les voisins sont
-%proches: les barres du code
-
-
-Distance=zeros(1,length(stats2));
+Distance=zeros(1,length(stats3));
 Taille=size(i_rgb);
 DimensionIm=Taille(1,1);
 
-for i=1:length(stats2)
-    Position_i=stats2(i).Centroid;
+for i=1:length(stats3)
+    Position_i=stats3(i).Centroid;
     voisins=DimensionIm*ones(1,5); %On cherche les 5 voisins les plus proches
     
-    for j=1:length(stats2)
+    for j=1:length(stats3)
         dist=DimensionIm;
         if i~=j
-            Position_j=stats2.Centroid;
+            Position_j=stats3(j).Centroid;
             dist=sqrt((Position_i (1,1)-Position_j (1,1))^2 + (Position_i (1,2)-Position_j (1,2))^2);
-            
+
             if(dist<voisins(1,5))
                 voisins(1,5)=dist;
-                sort(voisins);
+                voisins=sort(voisins);               
             end
             
         end
@@ -128,11 +120,125 @@ Distance(1,i)=sum(voisins);
     
 end
 
-ValARetirer=length(stats2)-30;
+Minimum=min(Distance);
+idx=[];
 
-while ValARetirer>0
-val=max(Distance);
-idx=find(Distance==val)
-Distance(idx)=0;
-ValARetirer=ValARetirer-length(idx);
+for i=1:length(Distance)
+    if Distance(i)<2.25*Minimum   %Le 2.25 est déterminé expérimentalement. Pour une valeur inférieure on commence à supprimer les barres extérieures du code
+    idx=[idx i];
+    end
 end
+%creation d'une image noir et blanc avec les régions voisines uniquement
+i_regions_voisines = ismember(i_regions_orientation_identique_num,idx);
+
+%% Calcul de la zone ou se trouve le code barre
+box = findBoundingBox(i_regions_voisines);
+
+%% Affichage des différentes étapes de l'extraction du code barre
+
+figure('Name','Extraction des codes barrres')
+subplot(2,2,1)
+    imshow(i_regions);
+    title('Image noir et blanc')
+subplot(2,2,2)
+    imshow(i_regions_allongees)
+    title('Filtrage des régions allongées')
+    hold on
+for k=1:length(stats2)
+    txt=texlabel(num2str(k));
+    text(stats2(k).Centroid(1),stats2(k).Centroid(2),txt,'Color','r')
+end
+subplot(2,2,3)
+    imshow(i_regions_orientation_identique)
+    title('Filtrage grâce à l''orientation')
+for k=1:length(stats3)
+    txt=texlabel(num2str(k));
+    text(stats3(k).Centroid(1),stats3(k).Centroid(2),txt,'Color','r')
+end
+subplot(2,2,4)
+    imshow(i_regions_voisines)
+    title('Filtrage des régions voisines')
+    hold on
+    rectangle('Position',box,'EdgeColor','r')
+
+%% Décodage du code barre %%
+%% Sélection de la zone ou se trouve le code barre
+barcode_crop=imcrop(i_bw,box);
+%%Rotation du code barre
+%On a ici un probleme: stats(i).Orientation donne l'angle réalisé entre
+%barre du code et direction horizontale. Cet angle est proche de 90° ou de
+%-90°. Une moyenne simple des angles ne donnerait pas du tout l'angle
+%espéré!
+angles_tab=zeros(1,length(stats3));
+
+for k=1:length(stats3)
+    angles_tab(k)=mod(stats3(k).Orientation,90);  %vecteur avec les angles de chacune des barres (modulo 90)
+end
+
+M=mean(angles_tab);   %Moyenne des angles modulo 90 (angle de rotation concret)
+
+angles_180=zeros(1,length(stats3));
+for k=1:length(stats3)
+    angles_180(k)=mod(stats3(k).Orientation,180);
+end
+Mod=mean(angles_180); %Angle des barres modulo 180 qui servira de référence pour le sens de rotation
+
+if Mod>90
+    angle = -M;
+else
+    angle = 90-M;
+end
+disp(angle)
+barcode_rotate = imrotate(barcode_crop,angle);  %2 problèmes: images à l'envers ou code parfaitement à 90°. Dans ce cas, on peur avoir des barres tournées de 0.1° et 89,9° dans le même code barre...
+
+figure(3)
+subplot(2,2,1)
+    imshow(barcode_crop)
+    title('Extraction du code barre')
+subplot(2,2,2)
+    imshow(barcode_rotate)
+    title('Rotation du code barre')
+
+%% Décodage
+validBarcode = 0;
+for i=1:5:size(barcode_rotate,1)
+    %extraction d'une ligne
+    ligne=extractLigne(i,barcode_rotate);
+
+    %calcul le nombre de barres verticales
+    numberOfBars=countBars(ligne);
+    
+    %tableau contenant la largeur des barres
+    widthOfBars=findWidths2(ligne,numberOfBars);
+
+    %donne l'indice de la premiere barre valide (k)
+    %et de la dernière barre valide (g)
+    [k,g]=findValidBars(widthOfBars);
+        
+    if (numberOfBars-g-k)==57,
+
+        %calcul la largeur des barres élémentaires
+        standardWidth1=(widthOfBars(k)+widthOfBars(k+1)+widthOfBars(k+2))/3;
+        standardWidth2=(widthOfBars(k+27)+widthOfBars(k+28)+widthOfBars(k+29)+widthOfBars(k+30)+widthOfBars(k+31))/5;
+        standardWidth3=(widthOfBars(k+56)+widthOfBars(k+57)+widthOfBars(k+58))/3;
+    
+        %applatissement du code barre et normalisation
+        x1=[k+1, k+29, k+57];
+        y1=[standardWidth1, standardWidth2, standardWidth3];
+        p=polyfit(x1,y1,2);
+    
+        x=k:k+58;
+    
+        standardWidthOfBars(x)=round(widthOfBars(x)./polyval(p,x));
+    
+        %decodage du code barre
+        [validBarcode,result]=decode(standardWidthOfBars,k);
+    
+        %verification de la validité du code barre(chiffre de controle)
+        if validBarcode
+            disp(result)
+            break;
+        end
+    end
+end
+
