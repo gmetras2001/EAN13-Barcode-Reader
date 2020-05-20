@@ -165,31 +165,19 @@ subplot(2,2,4)
 %% Sélection de la zone ou se trouve le code barre
 barcode_crop=imcrop(i_bw,box);
 %%Rotation du code barre
-%On a ici un probleme: stats(i).Orientation donne l'angle réalisé entre
-%barre du code et direction horizontale. Cet angle est proche de 90° ou de
-%-90°. Une moyenne simple des angles ne donnerait pas du tout l'angle
-%espéré!
-angles_tab=zeros(1,length(stats3));
-
-for k=1:length(stats3)
-    angles_tab(k)=mod(stats3(k).Orientation,90);  %vecteur avec les angles de chacune des barres (modulo 90)
+angle_moy = stats3(1).Orientation+90;
+for i=2:length(stats3)
+    angle_i = stats3(i).Orientation+90;
+    if abs(angle_moy-angle_i)>90
+        angle_moy = mod((angle_moy+angle_i+180)/2,180);
+    else
+        angle_moy = (angle_moy+angle_i)/2;
+    end
 end
+angle_moy = 180-angle_moy;
 
-M=mean(angles_tab);   %Moyenne des angles modulo 90 (angle de rotation concret)
-
-angles_180=zeros(1,length(stats3));
-for k=1:length(stats3)
-    angles_180(k)=mod(stats3(k).Orientation,180);
-end
-Mod=mean(angles_180); %Angle des barres modulo 180 qui servira de référence pour le sens de rotation
-
-if Mod>90
-    angle = -M;
-else
-    angle = 90-M;
-end
-disp(angle)
-barcode_rotate = imrotate(barcode_crop,angle);  %2 problèmes: images à l'envers ou code parfaitement à 90°. Dans ce cas, on peur avoir des barres tournées de 0.1° et 89,9° dans le même code barre...
+barcode_rotate = imrotate(barcode_crop,angle_moy);
+%les barres sont verticales mais elles peuvent être à l'envers
 
 figure(3)
 subplot(2,2,1)
