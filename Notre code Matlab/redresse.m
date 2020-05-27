@@ -12,7 +12,6 @@ for i=2:length(stats3)
 end
 angle_moy = 180-angle_moy;
 im = imrotate(im,angle_moy);
-figure; imshow(im);
 [m n rgb] = size(im);
  
 stats4 = regionprops(im,'Centroid','Extrema');
@@ -47,10 +46,9 @@ traceRect = @(M) plot(M([1 2 4 3 1],1) ,M([1 2 4 3 1],2), 'r-*');
 
  
 [m n rgb] = size(im);
-%U = [400 900 ; 400 1600 ; 1000 1400 ; 1100 900]
-U=[HautGauche; BasGauche; BasDroite; HautDroite];
-X = [ 0  0 ;   0 (m) ;  (n)  (m)  ;   (n)   0];
-tform = fitgeotrans(U,X, 'projective');
+U=[HautGauche; BasGauche; BasDroite; HautDroite]; %Zone du code à projeter
+X = [ 0  0 ;   0 (m) ;  (n)  (m)  ;   (n)   0];   %Rectangle d'arrivée
+tform = fitgeotrans(U,X, 'projective');   %Une projection linéaire ou affine ne fonctionne souvent pas
 B = imwarp(im, tform);
 box = findBoundingBox(B);
 ThresholdBarcode=imcrop(B,box);
@@ -60,7 +58,7 @@ RowNum = BarcodeSize(1); %y
 RowNum4 = floor(RowNum/4);
 ColumnNum = BarcodeSize(2); %x 
 
-%% Redéfinition du code-barres colonne par colonne
+%% Redéfinition du code-barres colonne par colonne pour une meilleure lisibilité
 
  
 for i = 1:ColumnNum

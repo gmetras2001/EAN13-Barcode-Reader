@@ -202,6 +202,47 @@ barcode_rotate=redresse(imcrop(i_regions_voisines,box),stats3);
 
 %% Décodage
 validBarcode = 0;
+l=1;
+
+while l<4  
+%Cette boucle permet d'essayer de déchiffrer trois images différentes:
+%L'étape de redressement peut créer des problèmes lors de la projection:
+%Si la première barre est coupée en deux, on ne considèrera qu'une moitié
+%et la projection rendra le code illisible. 
+%On essaie donc d'abord avec une image traitée mais non redressée.
+%Puis avec une image regions_allongees redressée et enfin avec une image
+%regions_petites redressée.  
+
+if l==1
+    %% Sélection de la zone ou se trouve le code barre
+barcode_crop=imcrop(i_regions_voisines,box);
+%%Rotation du code barre
+angle_moy = stats3(1).Orientation+90;
+        for i=2:length(stats3)
+             angle_i = stats3(i).Orientation+90;
+             if abs(angle_moy-angle_i)>90
+                 angle_moy = mod((angle_moy+angle_i+180)/2,180);
+             else
+        angle_moy = (angle_moy+angle_i)/2;
+             end
+        end
+angle_moy = 180-angle_moy;
+
+barcode_rotate = imrotate(barcode_crop,angle_moy+180);
+%les barres sont verticales mais elles peuvent être à l'envers
+end
+
+if l==2
+    %%Redressement des photos prises de biais
+    barcode_rotate=redresse(imcrop(i_regions_allongees,box),stats3);
+end
+
+if l==3
+    %%Redressement des photos prises de biais
+    barcode_rotate=redresse(imcrop(i_regions_petites,box),stats3);
+end
+
+
 for i=1:size(barcode_rotate,1)
     %extraction d'une ligne
     ligne=extractLigne(i,barcode_rotate);
@@ -238,14 +279,17 @@ for i=1:size(barcode_rotate,1)
         %verification de la validité du code barre(chiffre de controle)
         if validBarcode
             disp(result)
+            l=6;
             break;
         else
             [validBarcode,result]=decode(fliplr(standardWidthOfBars),1);
             if validBarcode
                 disp(result)
+                l=6;
                 break;
             end
         end
     end
 end
-
+l=l+1;
+end
