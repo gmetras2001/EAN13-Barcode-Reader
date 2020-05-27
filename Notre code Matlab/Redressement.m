@@ -128,11 +128,42 @@ end
 %creation d'une image noir et blanc avec les régions voisines uniquement
 i_regions_voisines = ismember(i_regions_orientation_identique_num,idx);
 
-%Filtrage sur les tailles
-stats1_2 = regionprops(i_regions_voisines,'MajorAxisLength');
+%%Filtrage sur les tailles
+%A ce stade, il peut reste quelques barres issues de lettres d'un texte
+%On propose de les éliminer en les comparant à la taille médiane des
+%régions restantes
+
+stats1_2 = regionprops(i_regions_voisines,'MajorAxisLength','Centroid');
+Med=[];
+d=zeros(length(stats1_2));
+
+for k=1:length(stats1_2)
+    Med=[Med (stats1_2(k).MajorAxisLength)];
+end
+Med=median(Med); 
+%La moyenne n'aurait ici pas d'intéret, les petites barres la tirant vers le bas, il serait difficile de les filtrer
+%Si le travail a été bien fait jusqu'ici, les régions restantes sont
+%majoritairement celles du code-barres: la médiane correspond à la taille
+%d'une barre. (Elle pourrait aussi correspondre à une barre coupée en deux,
+%d'où les marges élargies dans la boucle suivante.
+
+for k=1:length(stats1_2)
+    if (((stats1_2(k).MajorAxisLength)<3*Med)&&((stats1_2(k).MajorAxisLength)>Med/5))
+        d(k)=k;       
+    end
+end
+
+e=d~=0;
+idx_regions_petites = d(e);
+
+%creation d'une image noir et blanc avec les régions petites uniquement
+i_regions_petites = ismember(i_regions_voisines,idx_regions_petites);
+%numérotation des régions du code-barres
+i_regions_petites = bwlabel(i_regions_voisines);
+
 
 %% Calcul de la zone ou se trouve le code barre
-box = findBoundingBox(i_regions_voisines);
+box = findBoundingBox(i_regions_petites);
 
 %% Affichage des différentes étapes de l'extraction du code barre
 
@@ -156,108 +187,19 @@ for k=1:length(stats3)
     text(stats3(k).Centroid(1),stats3(k).Centroid(2),txt,'Color','r')
 end
 subplot(2,2,4)
-    imshow(i_regions_voisines)
-    title('Filtrage des régions voisines')
+    imshow(i_regions_petites)
+    title('Filtrage des régions voisines puis petites')
     hold on
+    for k=1:length(stats1_2)
+    txt=texlabel(num2str(k));
+    text(stats1_2(k).Centroid(1),stats1_2(k).Centroid(2),txt,'Color','r')
+    end
     rectangle('Position',box,'EdgeColor','r')
 
-im=imcrop(i_regions_voisines,box);
+%%Redressement des photos prises de biais
+barcode_rotate=redresse(imcrop(i_regions_voisines,box),stats3);
 
-%%Rotation du code barre
-angle_moy = stats3(1).Orientation+90;
-for i=2:length(stats3)
-    angle_i = stats3(i).Orientation+90;
-    if abs(angle_moy-angle_i)>90
-        angle_moy = mod((angle_moy+angle_i+180)/2,180);
-    else
-        angle_moy = (angle_moy+angle_i)/2;
-    end
-end
-angle_moy = 180-angle_moy;
-im = imrotate(im,angle_moy);
-figure; imshow(im);
-[m n rgb] = size(im);
- 
-stats4 = regionprops(im,'Centroid','Extrema');
 
-%On cherche les barres extrêmes à gauche et à droite: plus grand et petit x
-Xmin=n;
-Xmax=0;
-BarreGauche=0;
-BarreDroite=0;
-
-for k=1:length(stats4)
-    if stats4(k).Centroid(1,1)>Xmax
-        Xmax=stats4(k).Centroid(1,1);
-        BarreDroite=k;
-    end
-    if stats4(k).Centroid(1,1)<Xmin
-        Xmin=stats4(k).Centroid(1,1);
-        BarreGauche=k;
-    end
-    
-end
-
-%On cherche les extrémités des barres encadrant le code à gauche et droite
-
-HautGauche=[min(stats4(BarreGauche).Extrema(1,1),stats4(BarreGauche).Extrema(2,1))-10, min(stats4(BarreGauche).Extrema(1,2),stats4(BarreGauche).Extrema(2,2))]; %Coordonnées en x,y 
-BasGauche=[min(stats4(BarreGauche).Extrema(5,1),stats4(BarreGauche).Extrema(6,1))-10, max(stats4(BarreGauche).Extrema(6,2),stats4(BarreGauche).Extrema(5,2))];   %left-bottom
-
-HautDroite=[max(stats4(BarreDroite).Extrema(1,1),stats4(BarreDroite).Extrema(2,1))+10,min(stats4(BarreDroite).Extrema(1,2),stats4(BarreDroite).Extrema(2,2))];  %right-top
-BasDroite=[max(stats4(BarreDroite).Extrema(5,1),stats4(BarreDroite).Extrema(6,1))+10, max(stats4(BarreDroite).Extrema(6,2),stats4(BarreDroite).Extrema(5,2))]; %right-bottom
-
-traceRect = @(M) plot(M([1 2 4 3 1],1) ,M([1 2 4 3 1],2), 'r-*');
-
- 
-[m n rgb] = size(im);
-%U = [400 900 ; 400 1600 ; 1000 1400 ; 1100 900]
-U=[HautGauche; BasGauche; BasDroite; HautDroite];
-X = [ 0  0 ;   0 (m) ;  (n)  (m)  ;   (n)   0];
-tform = fitgeotrans(U,X, 'projective');
-B = imwarp(im, tform);
-box = findBoundingBox(B);
-ThresholdBarcode=imcrop(B,box);
-figure('name','Ola'); imshow(ThresholdBarcode);
-
-BarcodeSize = size(ThresholdBarcode);   
-RowNum = BarcodeSize(1); %y
-RowNum4 = floor(RowNum/4);
-ColumnNum = BarcodeSize(2); %x 
-
-%% Refine the barcode.
- %In each column, if the # of black pixels are more than # of white
- %pixels, the entire column will be all black pixel, or vice versa.  
-for i = 1:ColumnNum
-   
-    BlackCount = sum(ThresholdBarcode(RowNum4:2*RowNum4,i) == 0); % define black pixel 
-    WhiteCount = sum(ThresholdBarcode(RowNum4:2*RowNum4,i) == 1); % define white pixel
-    
-    %On ne parcourt que la moitié de la hauteur de l'image, centrée sur
-    %son milieu. Ainsi, si le code n'occupe pas toute l'image, les moyennes
-    %par colonne ne sont pas faussées par des pixels extérieurs au
-    %code-barres.
-    
-    if BlackCount > WhiteCount % make black pixel column
-        ThresholdBarcode(:,i) = 0; 
-    else
-        ThresholdBarcode(:,i) = 1; % make white pixel column
-    end
-end
-
-    %barcode_rotate=imcrop(B,box);
-    barcode_rotate=ThresholdBarcode;
-    figure;
-    subplot(1,3,1)
-    imshow(im)
-    hold on
-    plot(polyshape([HautGauche(1,1) BasGauche(1,1) BasDroite(1,1) HautDroite(1,1)],[HautGauche(1,2) BasGauche(1,2) BasDroite(1,2) HautDroite(1,2)]));
-subplot(1,3,2)
-    imshow(B)
-    hold on
-    %rectangle('Position',box,'EdgeColor','r')
-subplot(1,3,3)
-    imshow(ThresholdBarcode)
-    
 %% Décodage
 validBarcode = 0;
 for i=1:size(barcode_rotate,1)

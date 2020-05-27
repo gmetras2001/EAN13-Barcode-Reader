@@ -128,11 +128,42 @@ end
 %creation d'une image noir et blanc avec les régions voisines uniquement
 i_regions_voisines = ismember(i_regions_orientation_identique_num,idx);
 
-%Filtrage sur les tailles
+%%Filtrage sur les tailles
+%A ce stade, il peut reste quelques barres issues de lettres d'un texte
+%On propose de les éliminer en les comparant à la taille médiane des
+%régions restantes
+
+stats1_2 = regionprops(i_regions_voisines,'MajorAxisLength','Centroid');
+Med=[];
+d=zeros(length(stats1_2));
+
+for k=1:length(stats1_2)
+    Med=[Med (stats1_2(k).MajorAxisLength)];
+end
+Med=median(Med); 
+%La moyenne n'aurait ici pas d'intéret, les petites barres la tirant vers le bas, il serait difficile de les filtrer
+%Si le travail a été bien fait jusqu'ici, les régions restantes sont
+%majoritairement celles du code-barres: la médiane correspond à la taille
+%d'une barre. (Elle pourrait aussi correspondre à une barre coupée en deux,
+%d'où les marges élargies dans la boucle suivante.
+
+for k=1:length(stats1_2)
+    if (((stats1_2(k).MajorAxisLength)<3*Med)&&((stats1_2(k).MajorAxisLength)>Med/5))
+        d(k)=k;       
+    end
+end
+
+e=d~=0;
+idx_regions_petites = d(e);
+
+%creation d'une image noir et blanc avec les régions petites uniquement
+i_regions_petites = ismember(i_regions_voisines,idx_regions_petites);
+%numérotation des régions du code-barres
+i_regions_petites = bwlabel(i_regions_voisines);
 
 
 %% Calcul de la zone ou se trouve le code barre
-box = findBoundingBox(i_regions_voisines);
+box = findBoundingBox(i_regions_petites);
 
 %% Affichage des différentes étapes de l'extraction du code barre
 
@@ -156,12 +187,17 @@ for k=1:length(stats3)
     text(stats3(k).Centroid(1),stats3(k).Centroid(2),txt,'Color','r')
 end
 subplot(2,2,4)
-    imshow(i_regions_voisines)
-    title('Filtrage des régions voisines')
+    imshow(i_regions_petites)
+    title('Filtrage des régions voisines puis petites')
     hold on
+    for k=1:length(stats1_2)
+    txt=texlabel(num2str(k));
+    text(stats1_2(k).Centroid(1),stats1_2(k).Centroid(2),txt,'Color','r')
+    end
     rectangle('Position',box,'EdgeColor','r')
 
-im=imcrop(i_regions_voisines,box);
+%%Redressement des photos prises de biais
+im=imcrop(i_regions_allongees,box);
 
 %%Rotation du code barre
 angle_moy = stats3(1).Orientation+90;
