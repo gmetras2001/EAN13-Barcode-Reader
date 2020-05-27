@@ -158,11 +158,26 @@ subplot(2,2,4)
     hold on
     rectangle('Position',box,'EdgeColor','r')
 
+im=imcrop(i_regions_orientation_identique,box);
+figure; imshow(im);
+%%Rotation du code barre
+angle_moy = stats3(1).Orientation+90;
+for i=2:length(stats3)
+    angle_i = stats3(i).Orientation+90;
+    if abs(angle_moy-angle_i)>90
+        angle_moy = mod((angle_moy+angle_i+180)/2,180);
+    else
+        angle_moy = (angle_moy+angle_i)/2;
+    end
+end
+angle_moy = 180-angle_moy;
+im = imrotate(im,angle_moy);
 
-im=i_regions_voisines;
+figure;imshow(im);
+
 [m n rgb] = size(im);
-
-stats4 = regionprops(i_regions_voisines,'Centroid','Extrema');
+ 
+stats4 = regionprops(im,'Centroid','Extrema');
 
 %On cherche les barres extrêmes à gauche et à droite: plus grand et petit x
 Xmin=n;
@@ -184,11 +199,11 @@ end
 
 %On cherche les extrémités des barres encadrant le code à gauche et droite
 
-HautGauche=[min(stats4(BarreGauche).Extrema(1,1),stats4(BarreGauche).Extrema(2,1)), min(stats4(BarreGauche).Extrema(1,2),stats4(BarreGauche).Extrema(2,2))]; %Coordonnées en x,y 
-BasGauche=[min(stats4(BarreGauche).Extrema(5,1),stats4(BarreGauche).Extrema(6,1)), max(stats4(BarreGauche).Extrema(6,2),stats4(BarreGauche).Extrema(5,2))];   %left-bottom
+HautGauche=[min(stats4(BarreGauche).Extrema(1,1),stats4(BarreGauche).Extrema(2,1))-10, min(stats4(BarreGauche).Extrema(1,2),stats4(BarreGauche).Extrema(2,2))]; %Coordonnées en x,y 
+BasGauche=[min(stats4(BarreGauche).Extrema(5,1),stats4(BarreGauche).Extrema(6,1))-10, max(stats4(BarreGauche).Extrema(6,2),stats4(BarreGauche).Extrema(5,2))];   %left-bottom
 
-HautDroite=[max(stats4(BarreDroite).Extrema(1,1),stats4(BarreDroite).Extrema(2,1)),min(stats4(BarreDroite).Extrema(1,2),stats4(BarreDroite).Extrema(2,2))];  %right-top
-BasDroite=[max(stats4(BarreDroite).Extrema(5,1),stats4(BarreDroite).Extrema(6,1)), max(stats4(BarreDroite).Extrema(6,2),stats4(BarreDroite).Extrema(5,2))]; %right-bottom
+HautDroite=[max(stats4(BarreDroite).Extrema(1,1),stats4(BarreDroite).Extrema(2,1))+10,min(stats4(BarreDroite).Extrema(1,2),stats4(BarreDroite).Extrema(2,2))];  %right-top
+BasDroite=[max(stats4(BarreDroite).Extrema(5,1),stats4(BarreDroite).Extrema(6,1))+10, max(stats4(BarreDroite).Extrema(6,2),stats4(BarreDroite).Extrema(5,2))]; %right-bottom
 
 traceRect = @(M) plot(M([1 2 4 3 1],1) ,M([1 2 4 3 1],2), 'r-*');
 
@@ -196,20 +211,43 @@ traceRect = @(M) plot(M([1 2 4 3 1],1) ,M([1 2 4 3 1],2), 'r-*');
 [m n rgb] = size(im);
 %U = [400 900 ; 400 1600 ; 1000 1400 ; 1100 900]
 U=[HautGauche; BasGauche; BasDroite; HautDroite];
-X = [ 0  0 ;   0 m ;  n  m  ;   n   0];
-tform = fitgeotrans(U,X, 'pwl');
+X = [ 0  0 ;   0 (m) ;  (n)  (m)  ;   (n)   0];
+tform = fitgeotrans(U,X, 'projective');
 B = imwarp(im, tform);
- 
-subplot(1,2,1)
+box = findBoundingBox(B);
+ThresholdBarcode=imcrop(B,box);
+
+BarcodeSize = size(ThresholdBarcode);   
+RowNum = BarcodeSize(1); %y
+ColumnNum = BarcodeSize(2); %x 
+
+%% Refine the barcode.
+ %In each column, if the # of black pixels are more than # of white
+ %pixels, the entire column will be all black pixel, or vice versa.  
+for i = 1:ColumnNum
+   
+    BlackCount = sum(ThresholdBarcode(:,i) == 0); % define black pixel 
+    WhiteCount = sum(ThresholdBarcode(:,i) == 1); % define white pixel
+    
+    if BlackCount > WhiteCount % make black pixel column
+        ThresholdBarcode(:,i) = 0; 
+    else
+        ThresholdBarcode(:,i) = 1; % make white pixel column
+    end
+end
+
+    barcode_rotate=im;
+    
+    subplot(1,3,1)
     imshow(im)
     hold on
     plot(polyshape([HautGauche(1,1) BasGauche(1,1) BasDroite(1,1) HautDroite(1,1)],[HautGauche(1,2) BasGauche(1,2) BasDroite(1,2) HautDroite(1,2)]));
-subplot(1,2,2)
+subplot(1,3,2)
     imshow(B)
     hold on
-    traceRect(X)
-    
-    barcode_rotate=B;
+    %rectangle('Position',box,'EdgeColor','r')
+subplot(1,3,3)
+    imshow(ThresholdBarcode)
     
     %% Décodage
 validBarcode = 0;
@@ -227,7 +265,7 @@ for i=1:5:size(barcode_rotate,1)
     %et de la dernière barre valide (g)
     [k,g]=findValidBars(widthOfBars);
         
-    if (numberOfBars-g-k)==57,
+    if (numberOfBars-g-k)==57
 
         %calcul la largeur des barres élémentaires
         standardWidth1=(widthOfBars(k)+widthOfBars(k+1)+widthOfBars(k+2))/3;
@@ -237,7 +275,7 @@ for i=1:5:size(barcode_rotate,1)
         %applatissement du code barre et normalisation
         x1=[k+1, k+29, k+57];
         y1=[standardWidth1, standardWidth2, standardWidth3];
-        p=polyfit(x1,y1,2)
+        p=polyfit(x1,y1,2);
     
         x=k:k+58;
     

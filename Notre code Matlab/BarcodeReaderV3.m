@@ -4,7 +4,7 @@ close all
 clc
 %% Recuperation de l'image
 addpath(genpath('barcode images'));
-[im,map]=imread('pates1.PNG');
+[im,map]=imread('BA.png');
 size(im);
 size(map);
 

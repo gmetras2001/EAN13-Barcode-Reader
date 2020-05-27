@@ -163,7 +163,7 @@ subplot(2,2,4)
 
 %% Décodage du code barre %%
 %% Sélection de la zone ou se trouve le code barre
-barcode_crop=imcrop(i_bw,box);
+barcode_crop=imcrop(i_regions_voisines,box);
 %%Rotation du code barre
 angle_moy = stats3(1).Orientation+90;
 for i=2:length(stats3)
@@ -176,8 +176,10 @@ for i=2:length(stats3)
 end
 angle_moy = 180-angle_moy;
 
-barcode_rotate = imrotate(barcode_crop,angle_moy);
+barcode_rotate = imrotate(barcode_crop,angle_moy+180);
 %les barres sont verticales mais elles peuvent être à l'envers
+
+%barcode_rotate=Redressement(barcode_rotate);
 
 figure(3)
 subplot(2,2,1)
