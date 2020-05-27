@@ -128,6 +128,9 @@ end
 %creation d'une image noir et blanc avec les régions voisines uniquement
 i_regions_voisines = ismember(i_regions_orientation_identique_num,idx);
 
+%Filtrage sur les tailles
+
+
 %% Calcul de la zone ou se trouve le code barre
 box = findBoundingBox(i_regions_voisines);
 
@@ -158,8 +161,8 @@ subplot(2,2,4)
     hold on
     rectangle('Position',box,'EdgeColor','r')
 
-im=imcrop(i_regions_orientation_identique,box);
-figure; imshow(im);
+im=imcrop(i_regions_voisines,box);
+
 %%Rotation du code barre
 angle_moy = stats3(1).Orientation+90;
 for i=2:length(stats3)
@@ -172,7 +175,7 @@ for i=2:length(stats3)
 end
 angle_moy = 180-angle_moy;
 im = imrotate(im,angle_moy);
-
+figure; imshow(im);
 [m n rgb] = size(im);
  
 stats4 = regionprops(im,'Centroid','Extrema');
@@ -218,7 +221,7 @@ figure('name','Ola'); imshow(ThresholdBarcode);
 
 BarcodeSize = size(ThresholdBarcode);   
 RowNum = BarcodeSize(1); %y
-RowNum3 = floor(RowNum/3);
+RowNum4 = floor(RowNum/4);
 ColumnNum = BarcodeSize(2); %x 
 
 %% Refine the barcode.
@@ -226,10 +229,13 @@ ColumnNum = BarcodeSize(2); %x
  %pixels, the entire column will be all black pixel, or vice versa.  
 for i = 1:ColumnNum
    
-    BlackCount = sum(ThresholdBarcode(RowNum3:2*RowNum3,i) == 0); % define black pixel 
-    WhiteCount = sum(ThresholdBarcode(RowNum3:2*RowNum3,i) == 1); % define white pixel
+    BlackCount = sum(ThresholdBarcode(RowNum4:2*RowNum4,i) == 0); % define black pixel 
+    WhiteCount = sum(ThresholdBarcode(RowNum4:2*RowNum4,i) == 1); % define white pixel
     
-    %On ne parcourt que le tiers de la hauteur du 
+    %On ne parcourt que la moitié de la hauteur de l'image, centrée sur
+    %son milieu. Ainsi, si le code n'occupe pas toute l'image, les moyennes
+    %par colonne ne sont pas faussées par des pixels extérieurs au
+    %code-barres.
     
     if BlackCount > WhiteCount % make black pixel column
         ThresholdBarcode(:,i) = 0; 

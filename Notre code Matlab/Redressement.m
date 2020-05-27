@@ -128,6 +128,9 @@ end
 %creation d'une image noir et blanc avec les régions voisines uniquement
 i_regions_voisines = ismember(i_regions_orientation_identique_num,idx);
 
+%Filtrage sur les tailles
+stats1_2 = regionprops(i_regions_voisines,'MajorAxisLength');
+
 %% Calcul de la zone ou se trouve le code barre
 box = findBoundingBox(i_regions_voisines);
 
@@ -158,8 +161,8 @@ subplot(2,2,4)
     hold on
     rectangle('Position',box,'EdgeColor','r')
 
-im=imcrop(i_regions_orientation_identique,box);
-figure; imshow(im);
+im=imcrop(i_regions_voisines,box);
+
 %%Rotation du code barre
 angle_moy = stats3(1).Orientation+90;
 for i=2:length(stats3)
@@ -172,7 +175,7 @@ for i=2:length(stats3)
 end
 angle_moy = 180-angle_moy;
 im = imrotate(im,angle_moy);
-
+figure; imshow(im);
 [m n rgb] = size(im);
  
 stats4 = regionprops(im,'Centroid','Extrema');
