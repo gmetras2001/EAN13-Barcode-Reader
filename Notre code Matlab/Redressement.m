@@ -249,9 +249,9 @@ subplot(1,3,2)
 subplot(1,3,3)
     imshow(ThresholdBarcode)
     
-    %% Décodage
+%% Décodage
 validBarcode = 0;
-for i=1:5:size(barcode_rotate,1)
+for i=1:size(barcode_rotate,1)
     %extraction d'une ligne
     ligne=extractLigne(i,barcode_rotate);
 
@@ -288,6 +288,13 @@ for i=1:5:size(barcode_rotate,1)
         if validBarcode
             disp(result)
             break;
+        else
+            [validBarcode,result]=decode(fliplr(standardWidthOfBars),1);
+            if validBarcode
+                disp(result)
+                break;
+            end
         end
     end
 end
+
