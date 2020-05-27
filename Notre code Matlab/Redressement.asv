@@ -218,7 +218,7 @@ figure('name','Ola'); imshow(ThresholdBarcode);
 
 BarcodeSize = size(ThresholdBarcode);   
 RowNum = BarcodeSize(1); %y
-RowNum4 = floor(RowNum/4);
+RowNum3 = floor(RowNum/3);
 ColumnNum = BarcodeSize(2); %x 
 
 %% Refine the barcode.
@@ -226,13 +226,10 @@ ColumnNum = BarcodeSize(2); %x
  %pixels, the entire column will be all black pixel, or vice versa.  
 for i = 1:ColumnNum
    
-    BlackCount = sum(ThresholdBarcode(RowNum4:2*RowNum4,i) == 0); % define black pixel 
-    WhiteCount = sum(ThresholdBarcode(RowNum4:2*RowNum4,i) == 1); % define white pixel
+    BlackCount = sum(ThresholdBarcode(RowNum3:2*RowNum3,i) == 0); % define black pixel 
+    WhiteCount = sum(ThresholdBarcode(RowNum3:2*RowNum3,i) == 1); % define white pixel
     
-    %On ne parcourt que la moitié de la hauteur de l'image, centrée sur
-    %son milieu. Ainsi, si le code n'occupe pas toute l'image, les moyennes
-    %par colonne ne sont pas faussées par des pixels extérieurs au
-    %code-barres.
+    %On ne parcourt que le tiers de la hauteur du 
     
     if BlackCount > WhiteCount % make black pixel column
         ThresholdBarcode(:,i) = 0; 
