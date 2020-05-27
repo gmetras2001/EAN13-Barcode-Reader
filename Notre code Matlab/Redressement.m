@@ -173,8 +173,6 @@ end
 angle_moy = 180-angle_moy;
 im = imrotate(im,angle_moy);
 
-figure;imshow(im);
-
 [m n rgb] = size(im);
  
 stats4 = regionprops(im,'Centroid','Extrema');
