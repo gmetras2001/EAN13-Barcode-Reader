@@ -18,4 +18,7 @@ https://barcode-coder.com/fr/specification-ean-13-102.html
 
 https://fr.wikipedia.org/wiki/Code-barres_EAN#Description_sommaire
 
+* image explication EAN13
+http://www.gomaro.ch/codeean.htm
+
 * 
