@@ -51,7 +51,7 @@ X = [ 0  0 ;   0 (m) ;  (n)  (m)  ;   (n)   0];   %Rectangle d'arrivée
 tform = fitgeotrans(U,X, 'projective');   %Une projection linéaire ou affine ne fonctionne souvent pas
 B = imwarp(im, tform);
 box = findBoundingBox(B);
-ThresholdBarcode=imcrop(B,box);
+ThresholdBarcode=imcrop(B,box);  %On coupe B autour du code barres
 
 BarcodeSize = size(ThresholdBarcode);   
 RowNum = BarcodeSize(1); %y
