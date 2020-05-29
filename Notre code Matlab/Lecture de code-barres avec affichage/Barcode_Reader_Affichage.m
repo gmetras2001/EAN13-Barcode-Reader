@@ -1,5 +1,5 @@
- clear all
- close all
+clear all
+close all
  
  [FILENAME, PATHNAME] = uigetfile('*.*');
 i_rgb=imread(strcat(PATHNAME,FILENAME));
@@ -15,7 +15,7 @@ i_adjust = imadjust(i_black);
 %conversion en noir et blanc
 i_bw = imbinarize(i_adjust);
 
-figure('Name','Pré-traitement')
+figure('Name','Pré-traitement','NumberTitle','off')
 subplot(3,2,1)
     image(i_rgb)
     title('Image originale')
@@ -167,7 +167,7 @@ box = findBoundingBox(i_regions_petites);
 
 %% Affichage des différentes étapes de l'extraction du code barre
 
-figure('Name','Extraction des codes barrres')
+figure('Name','Extraction des codes barrres','NumberTitle','off')
 subplot(2,2,1)
     imshow(i_regions);
     title('Image noir et blanc')
@@ -187,7 +187,7 @@ for k=1:length(stats3)
     text(stats3(k).Centroid(1),stats3(k).Centroid(2),txt,'Color','r')
 end
 subplot(2,2,4)
-    imshow(i_regions_petites)
+    imshow(i_regions_voisines)
     title('Filtrage des régions voisines puis petites')
     hold on
     for k=1:length(stats1_2)
@@ -197,7 +197,7 @@ subplot(2,2,4)
     rectangle('Position',box,'EdgeColor','r')
 
 %%Redressement des photos prises de biais
-barcode_rotate=redresse(imcrop(i_regions_voisines,box),stats3);
+%barcode_rotate=redresse(imcrop(i_regions_voisines,box),stats3);
 
 
 %% Décodage
@@ -233,17 +233,20 @@ barcode_rotate = imrotate(barcode_crop,angle_moy+180);
 end
 
 if l==2
+    disp('V2')
     %%Redressement des photos prises de biais
-    barcode_rotate=redresse(imcrop(i_regions_allongees,box),stats3);
+    barcode_rotate=RedresseEtAffiche(imcrop(i_regions_petites,box),stats3,'Redressement sur image filtree au maximum');
 end
 
 if l==3
+    disp('V3')
     %%Redressement des photos prises de biais
-    barcode_rotate=redresse(imcrop(i_regions_petites,box),stats3);
+    barcode_rotate=RedresseEtAffiche(imcrop(i_regions_allongees,box),stats3,'Redressement sur image filtree avec les regions allongees seulement');
 end
 
 
 for i=1:size(barcode_rotate,1)
+    disp('j avance')
     %extraction d'une ligne
     ligne=extractLigne(i,barcode_rotate);
 

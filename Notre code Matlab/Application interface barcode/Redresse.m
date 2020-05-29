@@ -1,4 +1,4 @@
-function barcode_rotate = redresse(im,stats3)
+function barcode_rotate = Redresse(im,stats3)
 
 %%Rotation du code barre
 angle_moy = stats3(1).Orientation+90;
@@ -78,17 +78,5 @@ for i = 1:ColumnNum
     end
 end
 
-    barcode_rotate=ThresholdBarcode;
-    figure;
-    subplot(1,3,1)
-    imshow(im)
-    hold on
-    plot(polyshape([HautGauche(1,1) BasGauche(1,1) BasDroite(1,1) HautDroite(1,1)],[HautGauche(1,2) BasGauche(1,2) BasDroite(1,2) HautDroite(1,2)]));
-subplot(1,3,2)
-    imshow(B)
-    hold on
-    %rectangle('Position',box,'EdgeColor','r')
-subplot(1,3,3)
-    imshow(ThresholdBarcode)
-    
+    barcode_rotate=ThresholdBarcode;  
 end
