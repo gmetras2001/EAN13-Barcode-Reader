@@ -22,7 +22,7 @@ barcode_gray = rgb2gray(barcode_crop);
 %figure, imhist(barcode_gray);   %histogramme mettant en valeur le changement de contraste
 
 %% Top-hat Black 
-se= strel('disk', 12);
+se= strel('disk', 100);
 J=imtophat(barcode_gray,se);
 figure()
 imshow(J)
