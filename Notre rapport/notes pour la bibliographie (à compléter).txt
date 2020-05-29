@@ -21,4 +21,7 @@ https://fr.wikipedia.org/wiki/Code-barres_EAN#Description_sommaire
 * image explication EAN13
 http://www.gomaro.ch/codeean.htm
 
-* 
+* fonctionnement code barre et réapprovisionnement
+https://www.ecommerce-nation.fr/gtin-ean-benefices-et-usages-de-ces-codes/
+
+*
