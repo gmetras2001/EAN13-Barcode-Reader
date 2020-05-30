@@ -165,7 +165,7 @@ idx_regions_petites = d(e);
 %creation d'une image noir et blanc avec les régions petites uniquement
 i_regions_petites = ismember(i_regions_voisines,idx_regions_petites);
 %numérotation des régions du code-barres
-i_regions_petites = bwlabel(i_regions_voisines);
+i_regions_petites = bwlabel(i_regions_petites);
 
 
 %% Calcul de la zone ou se trouve le code barre
@@ -193,7 +193,7 @@ subplot(2,2,3)
 %     text(stats3(k).Centroid(1),stats3(k).Centroid(2),txt,'Color','r')
 % end
 subplot(2,2,4)
-    imshow(i_regions_voisines)
+    imshow(i_regions_petites)
     title('Filtrage des régions voisines puis petites')
 %     hold on
 %     for k=1:length(stats1_2)
@@ -239,13 +239,11 @@ barcode_rotate = imrotate(barcode_crop,angle_moy+180);
 end
 
 if l==2
-    disp('V2')
     %%Redressement des photos prises de biais
     barcode_rotate=RedresseEtAffiche(imcrop(i_regions_petites,box),stats3,'Redressement sur image filtree au maximum');
 end
 
 if l==3
-    disp('V3')
     %%Redressement des photos prises de biais
     barcode_rotate=RedresseEtAffiche(imcrop(i_regions_allongees,box),stats3,'Redressement sur image filtree avec les regions allongees seulement');
 end
