@@ -16,19 +16,25 @@ i_adjust = imadjust(i_black);
 i_bw = imbinarize(i_adjust);
 
 figure('Name','Pré-traitement','NumberTitle','off')
-subplot(3,2,1)
+subplot(4,2,1)
     image(i_rgb)
     title('Image originale')
-subplot(3,2,2)
+subplot(4,2,2)
     imshow(i_gray)
     title('Nuances de gris')
-subplot(3,2,3)
+subplot(4,2,3)
     imshow(i_black)
     title('Filtre top hat black')
-subplot(3,2,4)
+subplot(4,2,4)
     imshow(i_adjust)
     title('Augmentation du contraste')
-subplot(3,2,5)
+subplot(4,2,5)
+    imhist(i_black)
+    title('Histogramme sans contraste')
+subplot(4,2,6)
+    imhist(i_adjust)
+    title('Histogramme avec contraste')
+subplot(4,2,7)
     imshow(i_bw)
     title('Noir et blanc')
 
@@ -174,26 +180,26 @@ subplot(2,2,1)
 subplot(2,2,2)
     imshow(i_regions_allongees)
     title('Filtrage des régions allongées')
-    hold on
-for k=1:length(stats2)
-    txt=texlabel(num2str(k));
-    text(stats2(k).Centroid(1),stats2(k).Centroid(2),txt,'Color','r')
-end
+%     hold on
+% for k=1:length(stats2)
+%     txt=texlabel(num2str(k));
+%     text(stats2(k).Centroid(1),stats2(k).Centroid(2),txt,'Color','r')
+% end
 subplot(2,2,3)
     imshow(i_regions_orientation_identique)
     title('Filtrage grâce à l''orientation')
-for k=1:length(stats3)
-    txt=texlabel(num2str(k));
-    text(stats3(k).Centroid(1),stats3(k).Centroid(2),txt,'Color','r')
-end
+% for k=1:length(stats3)
+%     txt=texlabel(num2str(k));
+%     text(stats3(k).Centroid(1),stats3(k).Centroid(2),txt,'Color','r')
+% end
 subplot(2,2,4)
     imshow(i_regions_voisines)
     title('Filtrage des régions voisines puis petites')
-    hold on
-    for k=1:length(stats1_2)
-    txt=texlabel(num2str(k));
-    text(stats1_2(k).Centroid(1),stats1_2(k).Centroid(2),txt,'Color','r')
-    end
+%     hold on
+%     for k=1:length(stats1_2)
+%     txt=texlabel(num2str(k));
+%     text(stats1_2(k).Centroid(1),stats1_2(k).Centroid(2),txt,'Color','r')
+%     end
     rectangle('Position',box,'EdgeColor','r')
 
 %%Redressement des photos prises de biais
@@ -246,7 +252,7 @@ end
 
 
 for i=1:size(barcode_rotate,1)
-    disp('j avance')
+    disp('work in progress')
     %extraction d'une ligne
     ligne=extractLigne(i,barcode_rotate);
 
