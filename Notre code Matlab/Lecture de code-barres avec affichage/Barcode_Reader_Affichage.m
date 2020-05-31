@@ -13,7 +13,7 @@ i_black = imbothat(i_gray,se);
 %augmentation du contraste
 i_adjust = imadjust(i_black);
 %conversion en noir et blanc
-i_bw = imbinarize(i_adjust);
+i_bw = imbinarize(i_adjust,'adaptive');
 
 figure('Name','Pré-traitement','NumberTitle','off')
 subplot(4,2,1)
