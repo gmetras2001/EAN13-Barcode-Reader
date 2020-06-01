@@ -239,7 +239,6 @@ barcode_rotate = imrotate(barcode_crop,angle_moy+180);
 end
 
 if l==2
-    disp('2')
     %%Redressement des photos prises de biais
     barcode_rotate=RedresseEtAffiche(imcrop(i_regions_petites,box),stats3,'Redressement sur image filtree au maximum');
 end
