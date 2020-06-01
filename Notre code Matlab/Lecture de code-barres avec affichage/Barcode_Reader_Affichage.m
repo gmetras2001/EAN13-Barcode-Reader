@@ -239,6 +239,7 @@ barcode_rotate = imrotate(barcode_crop,angle_moy+180);
 end
 
 if l==2
+    disp('2')
     %%Redressement des photos prises de biais
     barcode_rotate=RedresseEtAffiche(imcrop(i_regions_petites,box),stats3,'Redressement sur image filtree au maximum');
 end
@@ -250,7 +251,6 @@ end
 
 
 for i=1:size(barcode_rotate,1)
-    disp('work in progress')
     %extraction d'une ligne
     ligne=extractLigne(i,barcode_rotate);
 
@@ -290,6 +290,7 @@ for i=1:size(barcode_rotate,1)
             break;
         else
             [validBarcode,result]=decode(fliplr(standardWidthOfBars),1);
+            %On retourne le code-barres à 180° et on essaie à nouveau
             if validBarcode
                 disp(result)
                 l=6;
