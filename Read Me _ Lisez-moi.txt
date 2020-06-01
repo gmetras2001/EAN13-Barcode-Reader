@@ -1,0 +1,18 @@
+Dans ce dossier sont rassemblés: 
+
+(-) Le rapport final du projet sous forme de PDF
+
+(-) Des images de codes-barres à essayer présentant de nombreuses différences
+
+(-) Le code de l'application permettant de décoder une image chargée ou capturée avec la Webcam
+    -> Dans "Application interface barcode", lancer "Barcode Reader"
+
+(-) Le code permettant de décoder une image tout en affichant les différentes étapes du traitement 
+    -> Dans "Lecture de code-barres avec affichage", lancer "Barcode Reader"
+
+(-) L'ensemble des codes correspondant à des versions obsolètes citées dans le rapport, par exemple les 
+    différentes fonctions de redressement de l'image essayées avant de découvrir regionprops. 
+
+Bonne lecture
+Le Groupe 281-6
+(BARGES METRAS GAUDARD JAMADI)
