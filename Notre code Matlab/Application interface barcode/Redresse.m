@@ -1,5 +1,4 @@
 function barcode_rotate = Redresse(im,stats3)
-
 %%Rotation du code barre
 angle_moy = stats3(1).Orientation+90;
 for i=2:length(stats3)
@@ -12,7 +11,7 @@ for i=2:length(stats3)
 end
 angle_moy = 180-angle_moy;
 im = imrotate(im,angle_moy);
-[m n rgb] = size(im);
+[~,n,~] = size(im);
  
 stats4 = regionprops(im,'Centroid','Extrema');
 
@@ -42,10 +41,10 @@ BasGauche=[min(stats4(BarreGauche).Extrema(5,1),stats4(BarreGauche).Extrema(6,1)
 HautDroite=[max(stats4(BarreDroite).Extrema(1,1),stats4(BarreDroite).Extrema(2,1))+10,min(stats4(BarreDroite).Extrema(1,2),stats4(BarreDroite).Extrema(2,2))];  %right-top
 BasDroite=[max(stats4(BarreDroite).Extrema(5,1),stats4(BarreDroite).Extrema(6,1))+10, max(stats4(BarreDroite).Extrema(6,2),stats4(BarreDroite).Extrema(5,2))]; %right-bottom
 
-traceRect = @(M) plot(M([1 2 4 3 1],1) ,M([1 2 4 3 1],2), 'r-*');
+%traceRect = @(M) plot(M([1 2 4 3 1],1) ,M([1 2 4 3 1],2), 'r-*');
 
  
-[m n rgb] = size(im);
+[m,n,~] = size(im);
 U=[HautGauche; BasGauche; BasDroite; HautDroite]; %Zone du code à projeter
 X = [ 0  0 ;   0 (m) ;  (n)  (m)  ;   (n)   0];   %Rectangle d'arrivée
 tform = fitgeotrans(U,X, 'projective');   %Une projection linéaire ou affine ne fonctionne souvent pas

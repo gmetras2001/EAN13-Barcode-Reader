@@ -10,8 +10,7 @@ function [k,g]=findValidBars(s)
         elseif (max(d)-min(d)) <= 4
             break;
         end
-   end
-    k=k;
+    end
     
     g=1;
     for i=length(s):-1:12        
@@ -23,5 +22,4 @@ function [k,g]=findValidBars(s)
             break;
         end
     end
-    g=g;
 end
